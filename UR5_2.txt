@@ -1,0 +1,125 @@
+function sysCall_init()
+    corout=coroutine.create(coroutineMain)
+end
+
+function sysCall_actuation()
+    if coroutine.status(corout)~='dead' then
+        local ok,errorMsg=coroutine.resume(corout)
+        if errorMsg then
+            error(debug.traceback(corout,errorMsg),2)
+        end
+    end
+end
+
+-- This is a threaded script, and is just an example!
+
+function movCallback(config,vel,accel,handles)
+    for i=1,#handles,1 do
+        if sim.getJointMode(handles[i])==sim.jointmode_force and sim.isDynamicallyEnabled(handles[i]) then
+            sim.setJointTargetPosition(handles[i],config[i])
+        else    
+            sim.setJointPosition(handles[i],config[i])
+        end
+    end
+end
+
+function moveToConfig(handles,maxVel,maxAccel,maxJerk,targetConf)
+    local currentConf={}
+    for i=1,#handles,1 do
+        currentConf[i]=sim.getJointPosition(handles[i])
+    end
+    sim.moveToConfig(-1,currentConf,nil,nil,maxVel,maxAccel,maxJerk,targetConf,nil,movCallback,handles)
+end
+
+function coroutineMain()
+    ----------------------
+    Proximtiy_sensor2=sim.getObjectHandle('CupProx#1')
+    l=sim.getObjectHandle('suctionPadLoopClosureDummy1#1')
+    l2=sim.getObjectHandle('suctionPadLoopClosureDummy2#1')
+    b=sim.getObjectHandle('suctionPad#1')
+    suctionPadLink=sim.getObjectHandle('suctionPadLink#1')
+    modelHandle=sim.getObjectHandle(sim.handle_self)
+    ----------------------
+    modelHandle=sim.getObjectHandle(sim.handle_self)
+    --suctionPad = sim.getObjectHandle('suctionPad')
+    Target= sim.getObjectHandle('UR5_Target#1')
+    UR5Base= sim.getObjectHandle('UR5_Base#1')
+    Connector2 = sim.getObjectHandle('SuctionConnector#1')
+    Proximtiy_sensor2=sim.getObjectHandle('CupProx#1')
+    
+    ----------------------
+    platform=sim.getObjectHandle(sim.handle_self)
+    omniPads={}
+    for i=1,4,1 do
+        omniPads[i]=sim.getObjectHandle('OmniWheel_regularRotation'..i)
+    end
+    v=80*2.398795*math.pi/180-- 2.398795 is a factor needed to obt
+    ----------------------
+    local jointHandles={}
+    for i=1,6,1 do
+        jointHandles[i]=sim.getObjectHandle('UR5_joint'..i)
+    end
+
+    local vel=180
+    local accel=40
+    local jerk=80
+    local maxVel={vel*math.pi/180,vel*math.pi/180,vel*math.pi/180,vel*math.pi/180,vel*math.pi/180,vel*math.pi/180}
+    local maxAccel={accel*math.pi/180,accel*math.pi/180,accel*math.pi/180,accel*math.pi/180,accel*math.pi/180,accel*math.pi/180}
+    local maxJerk={jerk*math.pi/180,jerk*math.pi/180,jerk*math.pi/180,jerk*math.pi/180,jerk*math.pi/180,jerk*math.pi/180}
+
+    local targetPos1={-12.74*math.pi/180,-4.84*math.pi/180,-110.71*math.pi/180,-64.29*math.pi/180,-12.73*math.pi/180,89.87*math.pi/180}
+    moveToConfig(jointHandles,maxVel,maxAccel,maxJerk,targetPos1)
+
+    local targetPos2={-56.37*math.pi/180,-21.27*math.pi/180,-95.33*math.pi/180,-64.34*math.pi/180,-58.37*math.pi/180,89.98*math.pi/180}
+    moveToConfig(jointHandles,maxVel,maxAccel,maxJerk,targetPos2)
+    
+    result2,PSensor_distance2, detectedPoint2, detectedObjectHandle2, detectedSurfaceNormalVector2=sim.readProximitySensor(Proximtiy_sensor2)
+    print(result2)
+    sim.setObjectParent(detectedObjectHandle2,Connector2,true)
+    -- close gripper
+    
+    
+    local targetPos3={-12.74*math.pi/180,-4.84*math.pi/180,-110.71*math.pi/180,-64.29*math.pi/180,-12.73*math.pi/180,89.87*math.pi/180}
+    moveToConfig(jointHandles,maxVel,maxAccel,maxJerk,targetPos3)
+
+    --local targetPos4={39.00*math.pi/180,9.88*math.pi/180,-68.60*math.pi/180,-121.35*math.pi/180,-136.34*math.pi/180,89.77*math.pi/180}
+    --moveToConfig(jointHandles,maxVel,maxAccel,maxJerk,targetPos4)
+    
+    local targetPos4={39.00*math.pi/180,9.88*math.pi/180,-68.60*math.pi/180,21.35*math.pi/180,45*math.pi/180,89.77*math.pi/180}
+    moveToConfig(jointHandles,maxVel,maxAccel,maxJerk,targetPos4)
+    
+    local targetPos5={96.59*math.pi/180,-11.60*math.pi/180,-77.71*math.pi/180,-0.65*math.pi/180,89.96*math.pi/180,-83.41*math.pi/180}
+    moveToConfig(jointHandles,maxVel,maxAccel,maxJerk,targetPos5)
+    
+    -- open gripper
+  
+    
+    sim.setObjectParent(detectedObjectHandle2,-1,true)
+    ---------
+    --item 2
+    ---------
+    local targetPos6={-10.21*math.pi/180,14.13*math.pi/180,-85.35*math.pi/180,71.41*math.pi/180,10.20*math.pi/180,-90.18*math.pi/180}
+    moveToConfig(jointHandles,maxVel,maxAccel,maxJerk,targetPos6)
+    
+    --local targetPos7={-61.27*math.pi/180,-12.47*math.pi/180,-67.04*math.pi/180,79.56*math.pi/180,61.26*math.pi/180,-90.02*math.pi/180}
+    --moveToConfig(jointHandles,maxVel,maxAccel,maxJerk,targetPos7)
+    local targetPos7={-55.27*math.pi/180,-14.47*math.pi/180,-65.04*math.pi/180,79.56*math.pi/180,61.26*math.pi/180,-90.02*math.pi/180}
+    moveToConfig(jointHandles,maxVel,maxAccel,maxJerk,targetPos7)
+    result2,PSensor_distance2, detectedPoint2, detectedObjectHandle2, detectedSurfaceNormalVector2=sim.readProximitySensor(Proximtiy_sensor2)
+    print(result2)
+    sim.setObjectParent(detectedObjectHandle2,Connector2,true)
+    -- close gripper
+    local targetPos8={-10.21*math.pi/180,14.13*math.pi/180,-85.35*math.pi/180,71.41*math.pi/180,10.20*math.pi/180,-90.18*math.pi/180}
+    moveToConfig(jointHandles,maxVel,maxAccel,maxJerk,targetPos8)
+
+    local targetPos9={96.59*math.pi/180,-11.60*math.pi/180,-77.71*math.pi/180,-0.65*math.pi/180,89.96*math.pi/180,-83.41*math.pi/180}
+    moveToConfig(jointHandles,maxVel,maxAccel,maxJerk,targetPos9)
+    
+    
+    sim.setObjectParent(detectedObjectHandle2,-1,true)
+                
+
+    local targetPos10={0,0,0,0,0,0}
+    moveToConfig(jointHandles,maxVel,maxAccel,maxJerk,targetPos10)
+
+end
